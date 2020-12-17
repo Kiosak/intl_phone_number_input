@@ -51,7 +51,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
   final String hintText;
   final String errorMessage;
 
-  final double selectorButtonOnErrorPadding;
+  // final double selectorButtonOnErrorPadding;
   final int maxLength;
 
   final bool isEnabled;
@@ -92,7 +92,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
       this.initialValue,
       this.hintText = 'Phone number',
       this.errorMessage = 'Invalid phone number',
-      this.selectorButtonOnErrorPadding = 24,
+      // this.selectorButtonOnErrorPadding = 24,
       this.maxLength = 15,
       this.isEnabled = true,
       this.formatInput = true,
@@ -127,6 +127,14 @@ class _InputWidgetState extends State<InternationalPhoneNumberInput> {
   List<Country> countries = [];
   bool isNotValid = true;
 
+  bool get _showErrorState {
+    if (widget.ignoreBlank && controller.text.isNotEmpty) {
+      return this.isNotValid;
+    } else {
+      return false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -144,8 +152,34 @@ class _InputWidgetState extends State<InternationalPhoneNumberInput> {
 
   @override
   Widget build(BuildContext context) {
-    return _InputWidgetView(
-      state: this,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          decoration: ShapeDecoration(
+            shape: RoundedRectangleBorder(
+              side: BorderSide(
+                color: _showErrorState ? Color(0xFFFF2066) : Color(0xFFDCDBDB),
+              ),
+              borderRadius: BorderRadius.all(
+                Radius.circular(3.0),
+              ),
+            ),
+          ),
+          child: _InputWidgetView(state: this),
+        ),
+        if (_showErrorState)
+          Padding(
+            padding: EdgeInsets.only(top: 8.0),
+            child: Text(
+              widget.errorMessage,
+              style: TextStyle(
+                fontSize: 13.0,
+                color: Color(0xFFFF2066),
+              ),
+            ),
+          )
+      ],
     );
   }
 
@@ -280,18 +314,18 @@ class _InputWidgetState extends State<InternationalPhoneNumberInput> {
   String validator(String value) {
     bool isValid =
         this.isNotValid && (value.isNotEmpty || widget.ignoreBlank == false);
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      if (isValid && widget.errorMessage != null) {
-        setState(() {
-          this.selectorButtonBottomPadding =
-              widget.selectorButtonOnErrorPadding ?? 24;
-        });
-      } else {
-        setState(() {
-          this.selectorButtonBottomPadding = 0;
-        });
-      }
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    //   if (isValid && widget.errorMessage != null) {
+    //     setState(() {
+    //       this.selectorButtonBottomPadding =
+    //           widget.selectorButtonOnErrorPadding ?? 24;
+    //     });
+    //   } else {
+    //     setState(() {
+    //       this.selectorButtonBottomPadding = 0;
+    //     });
+    //   }
+    // });
 
     return isValid ? widget.errorMessage : null;
   }
@@ -352,7 +386,7 @@ class _InputWidgetView
       child: Row(
         textDirection: TextDirection.ltr,
         mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Column(
             mainAxisSize: MainAxisSize.min,
@@ -369,12 +403,12 @@ class _InputWidgetView
                 autoFocusSearchField: widget.autoFocusSearch,
                 isScrollControlled: widget.countrySelectorScrollControlled,
               ),
-              SizedBox(
-                height: state.selectorButtonBottomPadding,
-              ),
+              // SizedBox(
+              //   height: state.selectorButtonBottomPadding,
+              // ),
             ],
           ),
-          SizedBox(width: 12),
+          // SizedBox(width: 10),
           Flexible(
             child: TextFormField(
               key: Key(TestHelper.TextInputKeyValue),
@@ -410,7 +444,7 @@ class _InputWidgetView
               ],
               onChanged: state.onChanged,
             ),
-          )
+          ),
         ],
       ),
     );
