@@ -41,7 +41,6 @@ class InternationalPhoneNumberInput extends StatefulWidget {
 
   final VoidCallback onSubmit;
   final ValueChanged<String> onFieldSubmitted;
-  final String Function(String) validator;
   final ValueChanged<PhoneNumber> onSaved;
 
   final TextEditingController textFieldController;
@@ -51,7 +50,6 @@ class InternationalPhoneNumberInput extends StatefulWidget {
   final String hintText;
   final String errorMessage;
 
-  // final double selectorButtonOnErrorPadding;
   final int maxLength;
 
   final bool isEnabled;
@@ -61,6 +59,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
   final AutovalidateMode autoValidateMode;
   final bool ignoreBlank;
   final bool countrySelectorScrollControlled;
+  final bool hideErrorState;
 
   final String locale;
 
@@ -72,48 +71,49 @@ class InternationalPhoneNumberInput extends StatefulWidget {
   final TextAlign textAlign;
   final TextAlignVertical textAlignVertical;
   final EdgeInsets scrollPadding;
+  final Color errorColor;
 
   final FocusNode focusNode;
   final Iterable<String> autofillHints;
 
   final List<String> countries;
 
-  InternationalPhoneNumberInput(
-      {Key key,
-      this.selectorConfig = const SelectorConfig(),
-      @required this.onInputChanged,
-      this.onInputValidated,
-      this.onSubmit,
-      this.onFieldSubmitted,
-      this.validator,
-      this.onSaved,
-      this.textFieldController,
-      this.keyboardAction,
-      this.initialValue,
-      this.hintText = 'Phone number',
-      this.errorMessage = 'Invalid phone number',
-      // this.selectorButtonOnErrorPadding = 24,
-      this.maxLength = 15,
-      this.isEnabled = true,
-      this.formatInput = true,
-      this.autoFocus = false,
-      this.autoFocusSearch = false,
-      this.autoValidateMode = AutovalidateMode.disabled,
-      this.ignoreBlank = false,
-      this.countrySelectorScrollControlled = true,
-      this.locale,
-      this.textStyle,
-      this.selectorTextStyle,
-      this.inputBorder,
-      this.inputDecoration,
-      this.searchBoxDecoration,
-      this.textAlign = TextAlign.start,
-      this.textAlignVertical = TextAlignVertical.center,
-      this.scrollPadding,
-      this.focusNode,
-      this.autofillHints,
-      this.countries})
-      : super(key: key);
+  InternationalPhoneNumberInput({
+    Key key,
+    this.selectorConfig = const SelectorConfig(),
+    @required this.onInputChanged,
+    this.onInputValidated,
+    this.onSubmit,
+    this.onFieldSubmitted,
+    this.onSaved,
+    this.textFieldController,
+    this.keyboardAction,
+    this.initialValue,
+    this.hintText = 'Phone number',
+    this.errorMessage = 'Invalid phone number',
+    this.maxLength = 15,
+    this.isEnabled = true,
+    this.formatInput = true,
+    this.autoFocus = false,
+    this.autoFocusSearch = false,
+    this.autoValidateMode = AutovalidateMode.disabled,
+    this.ignoreBlank = false,
+    this.countrySelectorScrollControlled = true,
+    this.hideErrorState = false,
+    this.locale,
+    this.textStyle,
+    this.selectorTextStyle,
+    this.inputBorder,
+    this.inputDecoration,
+    this.searchBoxDecoration,
+    this.textAlign = TextAlign.start,
+    this.textAlignVertical = TextAlignVertical.center,
+    this.scrollPadding,
+    this.focusNode,
+    this.autofillHints,
+    this.countries,
+    this.errorColor = const Color(0xFFFF2066),
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _InputWidgetState();
@@ -128,10 +128,14 @@ class _InputWidgetState extends State<InternationalPhoneNumberInput> {
   bool isNotValid = true;
 
   bool get _showErrorState {
-    if (widget.ignoreBlank && controller.text.isNotEmpty) {
-      return this.isNotValid;
-    } else {
+    if (widget.hideErrorState) {
       return false;
+    }
+
+    if (widget.ignoreBlank) {
+      return controller.text.isNotEmpty ? this.isNotValid : false;
+    } else {
+      return this.isNotValid;
     }
   }
 
@@ -159,7 +163,7 @@ class _InputWidgetState extends State<InternationalPhoneNumberInput> {
           decoration: ShapeDecoration(
             shape: RoundedRectangleBorder(
               side: BorderSide(
-                color: _showErrorState ? Color(0xFFFF2066) : Color(0xFFDCDBDB),
+                color: _showErrorState ? widget.errorColor : Color(0xFFDCDBDB),
               ),
               borderRadius: BorderRadius.all(
                 Radius.circular(3.0),
@@ -175,7 +179,7 @@ class _InputWidgetState extends State<InternationalPhoneNumberInput> {
               widget.errorMessage,
               style: TextStyle(
                 fontSize: 13.0,
-                color: Color(0xFFFF2066),
+                color: widget.errorColor,
               ),
             ),
           )
@@ -308,28 +312,6 @@ class _InputWidgetState extends State<InternationalPhoneNumberInput> {
     phoneNumberControllerListener();
   }
 
-  /// Validate and returns a validation error when [FormState] validate is called.
-  ///
-  /// Also updates [selectorButtonBottomPadding]
-  String validator(String value) {
-    bool isValid =
-        this.isNotValid && (value.isNotEmpty || widget.ignoreBlank == false);
-    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-    //   if (isValid && widget.errorMessage != null) {
-    //     setState(() {
-    //       this.selectorButtonBottomPadding =
-    //           widget.selectorButtonOnErrorPadding ?? 24;
-    //     });
-    //   } else {
-    //     setState(() {
-    //       this.selectorButtonBottomPadding = 0;
-    //     });
-    //   }
-    // });
-
-    return isValid ? widget.errorMessage : null;
-  }
-
   /// Changes Selector Button Country and Validate Change.
   void onCountryChanged(Country country) {
     setState(() {
@@ -403,12 +385,8 @@ class _InputWidgetView
                 autoFocusSearchField: widget.autoFocusSearch,
                 isScrollControlled: widget.countrySelectorScrollControlled,
               ),
-              // SizedBox(
-              //   height: state.selectorButtonBottomPadding,
-              // ),
             ],
           ),
-          // SizedBox(width: 10),
           Flexible(
             child: TextFormField(
               key: Key(TestHelper.TextInputKeyValue),
@@ -427,7 +405,6 @@ class _InputWidgetView
               onFieldSubmitted: widget.onFieldSubmitted,
               autovalidateMode: widget.autoValidateMode,
               autofillHints: widget.autofillHints,
-              validator: widget.validator ?? state.validator,
               onSaved: state.onSaved,
               scrollPadding: widget.scrollPadding ?? EdgeInsets.all(20.0),
               inputFormatters: [
